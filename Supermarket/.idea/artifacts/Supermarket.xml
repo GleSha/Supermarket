@@ -1,0 +1,23 @@
+<component name="ArtifactManager">
+  <artifact type="javafx" name="Supermarket">
+    <output-path>$PROJECT_DIR$/out/artifacts/Supermarket</output-path>
+    <properties id="javafx-properties">
+      <options>
+        <option name="appClass" value="form.Main" />
+        <option name="description" value="" />
+        <option name="htmlPlaceholderId" value="" />
+        <option name="title" value="" />
+        <option name="vendor" value="" />
+        <option name="version" value="" />
+      </options>
+    </properties>
+    <root id="root">
+      <element id="archive" name="JavaFXApp.jar">
+        <element id="module-output" name="Supermarket" />
+      </element>
+      <element id="directory" name="sources">
+        <element id="dir-copy" path="$PROJECT_DIR$/sources" />
+      </element>
+    </root>
+  </artifact>
+</component>
