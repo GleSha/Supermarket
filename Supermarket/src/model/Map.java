@@ -23,10 +23,13 @@ public class Map {
     private static final byte MAX_PRODUCTS_IN_CELL = 5;
 
     /**
-     *
+     * Имя стандартной карты
      * */
     public static final String DEFAULT_MAP_NAME = "sources/map.map";
 
+    /**
+     * Имя конфигурационного файла с описанием товаров
+     * */
     private static final String DEFAULT_PRODUCTS_FILE_NAME = "sources/config/products.txt";
 
     /**
@@ -214,7 +217,7 @@ public class Map {
     }
 
     /**
-     * один шаг жизненного цикла карты
+     * один шаг жизненного цикла системы
      * */
     public void timeStep() {
         if (isReady) {
@@ -234,23 +237,6 @@ public class Map {
                     i--;
                 }
             }
-
-
-            /*
-            if (customers.size() < MAX_CUSTOMERS)
-                if (customerHasEntered())
-                    customers.add(new Customer());
-
-            for (Customer customer : customers)
-                customer.liveStep();
-            for (int i = 0; i < customers.size(); i++) {
-                if (customers.get(i).left()) {
-                    customers.remove(i);
-                    i--;
-                }
-            }
-            Manager.getInstance().liveStep();
-            */
         }
     }
 
@@ -344,14 +330,6 @@ public class Map {
 
     public ArrayList<ObjectOnMap> getObjects() {
         return new ArrayList<>(objects);
-    }
-
-    public int getManagerRow() {
-        return Manager.getInstance().getRow();
-    }
-
-    public int getManagerColumn() {
-        return Manager.getInstance().getColumn();
     }
 
     public static String getErrorMessage() {
