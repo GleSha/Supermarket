@@ -1,20 +1,8 @@
 package model;
 
-import javafx.animation.Animation;
-import javafx.animation.PathTransition;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.scene.CacheHint;
-import javafx.scene.control.TextArea;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Pane;
-import javafx.scene.shape.Polyline;
-import javafx.util.Duration;
 import javafx.util.Pair;
-
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Manager {
 
@@ -24,183 +12,153 @@ public class Manager {
         return ourInstance;
     }
 
-
-    private Putable putable;
-
-
     private Manager() {
-        inactivity = true;
+        currentAction = ActionType.INACTIVITY;
+        managerRow = Storage.getRow();
+        managerColumn = Storage.getColumn();
     }
 
     /**
-     *
+     * ссылка на делегируемый метод (положить продукт на прилавок)
+     * */
+    private Putable putable;
+
+    /**
      * Координаты менеджера
-     *
      * */
     private int managerRow, managerColumn;
 
+    /**
+     * координаты пустого прилавка
+     * */
+    private int emptyCounterRow, emptyCounterColumn;
 
     /**
-     *
-     * Отрисовка
-     *
-     *
+     * путь до пустого прилавка
      * */
-    private ImageView imageView;
+    private ArrayList<Pair<Integer, Integer>> path;
 
-    private Pane pane;
+    /**
+     * копия матрицы для алгоритма поиска пути
+     * */
+    private byte [][] matrix;
 
-    private PathTransition path;
+    /**
+     * минимальная длина пути
+     * */
+    private byte MIN_STEP = 1;
 
+    /**
+     * продукт для пополнения
+     * */
     private Product refill;
 
-    private TextArea textArea;
+    /**
+     * текущее действие менеджера
+     * */
+    private int currentAction;
 
+    /**
+     * текущий шаг покупателя на пути к прилавку или складу
+     * */
+    private int currentStep;
 
-    public void init(Putable putable, Pane pane, Image managerImage, TextArea textArea) {
+    /**
+     * класс констант-действий менеджера
+     * */
+    private class ActionType {
+        static final int TAKE_PRODUCT = 0;      //взять продукт со склада
+        static final int MOVE_TO_COUNTER = 1;   //идти к прилавку
+        static final int PUT_PRODUCT = 2;       //пополнить пустой прилавок
+        static final int MOVE_TO_STORAGE = 3;   //идти к складу
+        static final int INACTIVITY = 4;        //ждать появления пустого прилавка
+    }
+
+    /**
+     * задать метод делегат (положить продукт)
+     * */
+    public void setPutable(Putable putable) {
         this.putable = putable;
-        this.pane = pane;
-        this.textArea = textArea;
-        imageView = new ImageView(managerImage);
-        imageView.setCache(true);
-        imageView.setCacheHint(CacheHint.SPEED);
-
-        imageView.setY(Storage.getRow() * Map.padding);
-        imageView.setX(Storage.getColumn() * Map.padding);
-        imageView.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                if (paused) {
-                    if (refill != null)
-                        textArea.setText("Несу " + refill.getName() + " к пустому прилавку...");
-                    else {
-                        if (inactivity)
-                            textArea.setText("Жду пустого прилавка...");
-                        else if (goToStorage)
-                            textArea.setText("Иду на склад...");
-                    }
-                }
-            }
-        });
-
-        pane.getChildren().add(imageView);
     }
 
     private void putProduct() {
-        putable.putProduct(emptyCounterRow, getEmptyCounterColumn);
+        putable.putProduct(emptyCounterRow, emptyCounterColumn);
         refill = null;
-        goToStorage = true;
-        isNear = false;
         emptyCounterRow = -1;
-        getEmptyCounterColumn = -1;
+        emptyCounterColumn = -1;
     }
 
+    /**
+     * шаг жизненного цикла менеджера
+     * */
+    public void liveStep() {
+        action(currentAction);
+    }
 
-
-    public void timeStep() {
-        if (inactivity) {
-            path = findPathToEmptyCounter();
-            if (path != null) {
-                inactivity = false;
-                isMove = true;
-                path.setNode(imageView);
-                path.play();
-            }
-            else if (isNear) {
-                /**
-                 *
-                 * мы рядом с пустой полкой
-                 * сразу кладем в нее товар
-                 *
-                 * */
+    /**
+     * выполняем действие, параметр - константы действий
+     * класса ActionType
+     * */
+    private void action(int actionType) {
+        switch (actionType) {
+            case ActionType.INACTIVITY: {
+                if (emptyCounterExists()) {
+                    findPath();
+                    currentAction = ActionType.TAKE_PRODUCT;
+                }
+            } break;
+            case ActionType.TAKE_PRODUCT: {
+                byte ID = Map.getInstance().getProductID(emptyCounterRow, emptyCounterColumn);
+                refill = new Product(ID, Map.getInstance().getProductInfo(emptyCounterRow, emptyCounterColumn));
+                currentStep = 0;
+                if (path != null)
+                    currentAction = ActionType.MOVE_TO_COUNTER;
+                else
+                    currentAction = ActionType.PUT_PRODUCT;
+            } break;
+            case ActionType.PUT_PRODUCT: {
                 putProduct();
-            }
-        }
-        else {
-            if (!goToStorage) {
-                /**
-                 *
-                 * пополняем полку
-                 *
-                 * */
-                putProduct();
-
-            }
-            else {
-                /**
-                 *
-                 * идем обратно на склад
-                 *
-                 *
-                 * */
                 if (path != null) {
-                    path.setRate(-1);
-                    isMove = true;
-                    path.setOnFinished(new EventHandler<ActionEvent>() {
-                        @Override
-                        public void handle(ActionEvent event) {
-                            isMove = false;
-                            isNear = false;
-                            inactivity = true;
-                            goToStorage = false;
-                        }
-                    });
-                    path.play();
+                    Collections.reverse(path);
+                    currentStep = 0;
+                    currentAction = ActionType.MOVE_TO_STORAGE;
+                }
+                else
+                    currentAction = ActionType.INACTIVITY;
+            } break;
+            default: {
+                if (currentStep < path.size()) {
+                    moveTo(path.get(currentStep));
+                    currentStep++;
                 }
                 else {
-                    inactivity = true;
-                    isNear = false;
-                    isMove = false;
-                    goToStorage = false;
+                    if (actionType == ActionType.MOVE_TO_COUNTER)
+                        currentAction = ActionType.PUT_PRODUCT;
+                    else
+                        currentAction = ActionType.INACTIVITY;
                 }
-            }
+            } break;
         }
     }
 
-    private boolean paused;
-
-    public void pause() {
-        paused = true;
-        if (path != null)
-            path.pause();
+    /**
+     * пережвигает менеджера на 1 шаг по карте
+     * параметр {@param coords} не должнен быть равен null
+     * */
+    private void moveTo(Pair<Integer, Integer> coords) {
+        managerRow = coords.getKey();
+        managerColumn = coords.getValue();
     }
 
-    public void play() {
-        paused = false;
-        if (path != null) {
-            if (path.getStatus() == Animation.Status.PAUSED) {
-                path.play();
-            }
-        }
-    }
-
-
-    public boolean isMove() {
-        return isMove;
-    }
-
-
-    private int emptyCounterRow, getEmptyCounterColumn;
-
-    private boolean isMove;
-
-    private boolean isNear;
-
-    private boolean goToStorage;
-
-    private boolean inactivity;
-
-
-    private PathTransition findPathToEmptyCounter() {
-
-        byte [][] matrix = Map.getInstance().getCopyOfMatrix();
-
-
+    /**
+     * проверяет карту на наличие пустых прилавков
+     * */
+    private boolean emptyCounterExists() {
+        matrix = Map.getInstance().getCopyOfMatrix();
         boolean isEmpty = false;
-
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix.length; j++) {
-                if (matrix[i][j] < Map.storageID && Map.getInstance().getProductCount(i, j) == 0) {
+                if (matrix[i][j] < Map.STORAGE_ID && Map.getInstance().getProductCount(i, j) == 0) {
                     isEmpty = true;
                     break;
                 }
@@ -208,167 +166,108 @@ public class Manager {
             if (isEmpty)
                 break;
         }
+        return isEmpty;
+    }
 
-        if (!isEmpty)
-            return null;
+    /**
+     * возвращает длину пути
+     * если она равна MIN_STEP, то мы рядом, идти никуда не нужно
+     * метод может вызываться только при условии, что на карте
+     * есть пустые прилавки
+     * */
+    private void findPath() {
+        //matrix = Map.getInstance().getCopyOfMatrix();
+        path = null;
+        byte step = startWave();
+        if (step > MIN_STEP)
+            restorePath(step);
+    }
 
-
-
-        /**
-         *
-         * Распространение волны
-         *
-         *
-         * */
-
-        int row = Storage.getRow();
-        int column = Storage.getColumn();
-
-
+    /**
+     * Распространение волны
+     * Возвращает длину пути
+     * можно вызывать, только если на карте есть пустые прилавки
+     * */
+    private byte startWave() {
         byte step = 1;
-
-        matrix[row][column] = step;
-
+        matrix[Storage.getRow()][Storage.getColumn()] = step;
         int destX = -1, destY = -1;
-
         boolean isFinished = false;
-
         while (step < Byte.MAX_VALUE) {
-
             for (int i = 0; i < matrix.length; i++) {
-
                 for (int j = 0; j < matrix.length; j++) {
-
                     if (matrix[i][j] == step) {
-
                         for (int iOffset = -1; iOffset < 2; iOffset++) {
-
                             if (i + iOffset < 0 || i + iOffset > matrix.length - 1)
                                 continue;
-
                             for (int jOffset = -1; jOffset < 2; jOffset++) {
-
                                 if (j + jOffset < 0 || j + jOffset > matrix.length - 1)
                                     continue;
-
                                 if (matrix[i + iOffset][j + jOffset] == 0)
                                     matrix[i + iOffset][j + jOffset] = (byte) (step + 1);
-                                else if (matrix[i + iOffset][j + jOffset] < Map.storageID
+                                else if (matrix[i + iOffset][j + jOffset] < Map.STORAGE_ID
                                         && Map.getInstance().getProductCount(i + iOffset, j + jOffset) == 0) {
                                     isFinished = true;
                                     destX = j + jOffset;
                                     destY = i + iOffset;
                                     break;
                                 }
-
                             }
-
                         }
-
                     }
-
                 }
-
             }
             if (isFinished)
                 break;
             step++;
         }
-
-        /**
-         *
-         * координаты найденного товара
-         *
-         * */
-
         emptyCounterRow = destY;
-        getEmptyCounterColumn = destX;
+        emptyCounterColumn = destX;
+        return step;
+    }
 
-
-
-        refill = new Product(Map.getInstance().getProductID(emptyCounterRow, getEmptyCounterColumn),
-                Map.getInstance().getProductInfo(emptyCounterRow, getEmptyCounterColumn));
-
-
-        /**
-         *
-         * Восстановление пути
-         *
-         * */
-        ArrayList<Pair<Integer, Integer>> path = new ArrayList<>();
-
-
-        PathTransition p;
-
-
-        double [] arr;
-
-        if (step > 1) {
-
-
-            do {
-                for (int iOffset = -1; iOffset < 2; iOffset++) {
-                    if (destY + iOffset < 0 || destY + iOffset > matrix.length - 1)
+    /**
+     * {@param step} должен быть в пределах от MIN_STEP до MAX_STEP
+     * */
+    private void restorePath(byte step) {
+        path = new ArrayList<>();
+        int row = emptyCounterRow;
+        int column = emptyCounterColumn;
+        do {
+            for (int iOffset = -1; iOffset < 2; iOffset++) {
+                if (row + iOffset < 0 || row + iOffset > matrix.length - 1)
+                    continue;
+                for (int jOffset = -1; jOffset < 2; jOffset++) {
+                    if (column + jOffset < 0 || column + jOffset > matrix.length - 1)
                         continue;
-                    for (int jOffset = -1; jOffset < 2; jOffset++) {
-                        if (destX + jOffset < 0 || destX + jOffset > matrix.length - 1)
-                            continue;
-                        if (matrix[destY + iOffset][destX + jOffset] == step) {
-                            path.add(new Pair<>(destY + iOffset, destX + jOffset));
-                            destY += iOffset;
-                            destX += jOffset;
-                            step--;
-                            break;
-                        }
+                    if (matrix[row + iOffset][column + jOffset] == step) {
+                        path.add(new Pair<>(row + iOffset, column + jOffset));
+                        row += iOffset;
+                        column += jOffset;
+                        step--;
+                        break;
                     }
                 }
             }
-            while (step > 0);
-
-
-            arr = new double[path.size() * 2];
-
-            int index = 0;
-
-
-            /**
-             *
-             * обновляем координаты покупателя
-             *
-             * */
-            managerRow = path.get(0).getKey();
-            managerColumn = path.get(0).getValue();
-
-            for (int i = arr.length - 2; i >= 0; i -= 2) {
-                arr[i] = path.get(index).getValue() * Map.padding + Map.halfPadding;
-                arr[i + 1] = path.get(index).getKey() * Map.padding + Map.halfPadding;
-                index++;
-            }
-
-            p = new PathTransition();
-
-            p.setPath(new Polyline(arr));
-
-            p.setDuration(Duration.seconds(arr.length / 4.0));
-
-            p.setOnFinished(new EventHandler<ActionEvent>() {
-                @Override
-                public void handle(ActionEvent event) {
-                    isMove = false;
-                    isNear = true;
-                }
-            });
-
-            p.setCycleCount(1);
         }
-        else {
-            isNear = true;
-            p = null;
-        }
-        return p;
+        while (step > 0);
+        Collections.reverse(path);
     }
 
+    public int getRow() {
+        return managerRow;
+    }
 
+    public int getColumn() {
+        return managerColumn;
+    }
 
-
+    public String getInfo() {
+        if (refill != null)
+            return  "Несу " + refill.getName() + " к пустому прилавку";
+        else if (currentAction == ActionType.MOVE_TO_STORAGE)
+            return "Иду на склад...";
+        else
+            return "Жду пустого прилавка";
+    }
 }

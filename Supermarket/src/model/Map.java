@@ -1,25 +1,9 @@
 package model;
 
 
-import javafx.geometry.Pos;
-import javafx.scene.CacheHint;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
-import javafx.scene.shape.Line;
-import javafx.scene.text.Font;
-import javafx.util.Duration;
 import javafx.util.Pair;
 
-import java.beans.EventHandler;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -31,135 +15,55 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Map {
 
-
-    public static final int matrixSize = 15;
+    public static final int MATRIX_SIZE = 15;
 
     /**
-     *
      * Максимальное количество товаров на прилавке
-     *
      * */
-    private static final byte maxProductsInCell = 5;
+    private static final byte MAX_PRODUCTS_IN_CELL = 5;
 
     /**
      *
-     *
-     *
      * */
-    public static final String defaultMapName = "sources/map.txt";
+    public static final String DEFAULT_MAP_NAME = "sources/map.map";
 
-    private static final String defaultProductsFileName = "sources/config/products.txt";
+    private static final String DEFAULT_PRODUCTS_FILE_NAME = "sources/config/products.txt";
 
     /**
-     *
      * Карта в виде двумерного массива
-     *
      * */
     private byte [][] matrix;
 
     /**
-     *
      * ID в массиве для входа, кассы и склада
-     *
      * */
+    public static final byte GATE_ID = -2;
 
-    public static final byte gateID = -2;
+    public static final byte CASHBOX_ID = -3;
 
-    public static final byte cashboxID = -3;
-
-    public static final byte storageID = -4;
-
+    public static final byte STORAGE_ID = -4;
 
     /**
-     *
      * Карта с количеством товара в каждом прилавке
-     *
      * */
     private byte [][] productsCount;
 
-
     /**
-     *
      * Все виды товаров из списка products.txt
-     *
      * */
-    private static HashMap<Byte, Pair<Integer, String>> productType;
-
+    private HashMap<Byte, Pair<Integer, String>> productType;
 
     /**
-     *
      * Список посетителей
-     *
      * */
     private ArrayList<Customer> customers;
 
     /**
-     *
      * Максимальное количество посетителей
-     *
      * */
-    private static final int maxCustomers = 5;
+    public static final int MAX_CUSTOMERS = 5;
 
-
-    private String errorMessage;
-
-    /**
-     *
-     * Отрисовка:
-     *
-     * отступ для определения координат в пикселях
-     *
-     *
-     * набор изображений всех объектов на карте
-     *
-     *
-     * */
-
-    public static final int padding = 32;
-
-    public static final int halfPadding = padding / 2;
-
-    private static final double horizLineWidth = 1.5;
-
-    private static final double verticLineWidth = 0.5;
-
-
-    private Image emptyCounterImage;
-
-    private Image customerImage;
-
-    private Image managerImage;
-
-    private Image gateImage;
-
-    private Image cashboxImage;
-
-    private Image storageImage;
-
-    private Label [][] counters;
-
-    private HashMap<Byte, Image> counterImages;
-
-
-    /**
-     *
-     * Ссылка на Pane для отрисовки
-     *
-     * */
-    private Pane mapPane;
-
-
-    /**
-     *
-     * Ифнормция о покупателе или или менеджере
-     *
-     * */
-    private TextArea textArea;
-
-    private String textAreaMessage;
-
-
-
+    private static String errorMessage;
 
     private static Map ourInstance = null;
 
@@ -167,215 +71,65 @@ public class Map {
         return ourInstance;
     }
 
-    private Map(String fileName, Pane pane, TextArea textArea) {
+    private Map(String fileName) {
         try {
-
-
-            mapPane = pane;
-
-            this.textArea = textArea;
-
-            textAreaMessage = textArea.getText();
-
             /**
-             *
              * Загрузка карты
-             *
              * */
-
             if (mapLoad(fileName)) {
-
-
-                /**
-                 *
-                 * Загрузка всех изображений
-                 *
-                 * */
-
-
-                customerImage = new Image(new FileInputStream("sources/images/customer.png"));
-
-                managerImage = new Image(new FileInputStream("sources/images/manager.png"));
-
-                emptyCounterImage = new Image(new FileInputStream("sources/images/counters/emptyCounter.png"));
-
-                storageImage = new Image(new FileInputStream("sources/images/storageImage.png"));
-
-                cashboxImage = new Image(new FileInputStream("sources/images/cashboxImage.png"));
-
-                gateImage = new Image(new FileInputStream("sources/images/gateImage.png"));
-
-                counterImages = new HashMap<>();
-
-
-                for (Byte productID : productType.keySet()) {
-                    Image image = new Image(new FileInputStream("sources/images/counters/" + productID + ".png"));
-                    counterImages.put(productID, image);
-                }
-
-
-                /**
-                 *
-                 * Загрузка всех изображений
-                 *
-                 * */
-
-                /**
-                 *
-                 * Рисуем сетку на карте
-                 *
-                 * */
-
-                for (int i = 0; i < matrixSize + 1; i++) {
-                    Line line = new Line(i * padding, 0, i * padding, padding * matrixSize);
-                    line.setStroke(Color.BLUE);
-                    line.setStrokeWidth(verticLineWidth);
-                    line.setCache(true);
-                    line.setCacheHint(CacheHint.SPEED);
-                    pane.getChildren().add(line);
-                    line = new Line(0, i * padding, padding * matrixSize, i * padding);
-                    line.setStroke(Color.BLUE);
-                    line.setStrokeWidth(horizLineWidth);
-                    line.setCache(true);
-                    line.setCacheHint(CacheHint.SPEED);
-                    pane.getChildren().add(line);
-                }
-
-
-                /**
-                 *
-                 * Рисуем изображения прилавков с товарами, кассу, склад и вход
-                 *
-                 * */
-
-
-                counters = new Label[matrixSize][matrixSize];
-
-                for (int i = 0; i < matrixSize; i++) {
-                    for (int j = 0; j < matrixSize; j++) {
-                        if (matrix[i][j] < 0) {
-                            if (counterImages.containsKey(matrix[i][j])) {
-                                counters[i][j] = new Label();
-                                Background back = new Background(new BackgroundImage(counterImages.get(matrix[i][j]),
-                                        BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
-                                        BackgroundPosition.CENTER, BackgroundSize.DEFAULT));
-                                Tooltip tooltip = new Tooltip(productType.get(matrix[i][j]).getValue() +
-                                        "\nцена: " + productType.get(matrix[i][j]).getKey() +
-                                        "\nпривлекательность: " + Math.abs(matrix[i][j]));
-                                tooltip.setFont(Font.font(12));
-                                tooltip.setShowDelay(Duration.ZERO);
-                                tooltip.setHideDelay(Duration.ZERO);
-                                counters[i][j].setBackground(back);
-                                counters[i][j].setPrefSize(padding, padding);
-                                counters[i][j].setTooltip(tooltip);
-                                counters[i][j].setLayoutY(i * padding);
-                                counters[i][j].setLayoutX(j * padding);
-                                counters[i][j].setAlignment(Pos.BOTTOM_RIGHT);
-                                counters[i][j].setFont(Font.font(12));
-                                counters[i][j].setTextFill(Paint.valueOf("000000"));
-                                counters[i][j].setText(String.valueOf(productsCount[i][j]));
-                                counters[i][j].setCache(true);
-                                counters[i][j].setCacheHint(CacheHint.SPEED);
-                                mapPane.getChildren().add(counters[i][j]);
-                            }
-                        }
-                    }
-                }
-
-
-                ImageView iv = new ImageView(storageImage);
-                iv.setCache(true);
-                iv.setCacheHint(CacheHint.SPEED);
-                iv.setY(Storage.getRow() * padding);
-                iv.setX(Storage.getColumn() * padding);
-                mapPane.getChildren().add(iv);
-
-                iv = new ImageView(cashboxImage);
-                iv.setCache(true);
-                iv.setCacheHint(CacheHint.SPEED);
-                iv.setY(Cashbox.getInstance().getRow() * padding);
-                iv.setX(Cashbox.getInstance().getColumn() * padding);
-                mapPane.getChildren().add(iv);
-
-                iv = new ImageView(gateImage);
-                iv.setCache(true);
-                iv.setCacheHint(CacheHint.SPEED);
-                iv.setY(Gate.getRow() * padding);
-                iv.setX(Gate.getColumn() * padding);
-                mapPane.getChildren().add(iv);
-
                 customers = new ArrayList<>();
-
-                Manager.getInstance().init(new Put(), mapPane, managerImage, textArea);
-
+                Manager.getInstance().setPutable(new Put());
                 isReady = true;
-            }
-            else {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Сообщение");
-                alert.setHeaderText("Ошибка загрузки карты");
-                alert.setContentText(errorMessage);
-                errorMessage = "";
-                alert.show();
             }
         }
         catch (IOException | NumberFormatException ex) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Сообщение");
-            alert.setHeaderText("Ошибка загрузки карты");
-            alert.setContentText(ex.toString());
-            alert.show();
+            if (ex instanceof IOException) {
+                errorMessage = "Ошибка чтения файла карты\n" + ex.getMessage();
+            }
+            else {
+                errorMessage = "Формат карты не верен\n" + ex.getMessage();
+            }
         }
     }
 
-
-
     /**
-     *
      * Загружает карту и формирует список продаваемых на этой карте товаров
-     *
      * */
     private boolean mapLoad(String fileName) throws IOException, NumberFormatException {
         HashMap<Byte, Pair<Integer, String>> allProductsTypes = allProductsTypesLoad();
-
-
         productType = new HashMap<>();
-
         String[] lines = Files.readAllLines(Paths.get(fileName)).toArray(new String[0]);
-        if (lines.length != matrixSize) {
+        if (lines.length != MATRIX_SIZE) {
             errorMessage = "\nФормат файла карты не верен!\nНужная размерность матрицы -  15 * 15.";
             return false;
         }
-        matrix = new byte[matrixSize][matrixSize];
-        productsCount = new byte[matrixSize][matrixSize];
-
+        matrix = new byte[MATRIX_SIZE][MATRIX_SIZE];
+        productsCount = new byte[MATRIX_SIZE][MATRIX_SIZE];
         String [] row;
-
         boolean storage = false, cashbox = false, gate = false;
-
-        for (int i = 0; i < matrixSize; i++) {
+        for (int i = 0; i < MATRIX_SIZE; i++) {
             row = lines[i].split(" ");
-            if (row.length != matrixSize) {
+            if (row.length != MATRIX_SIZE) {
                 errorMessage = "Формат файла карты не верен!\nНужная размерность матрицы -  15 * 15.";
                 return false;
             }
-            for (int j = 0; j < matrixSize; j++) {
+            for (int j = 0; j < MATRIX_SIZE; j++) {
                 matrix[i][j] = Byte.valueOf(row[j]);
                 if (matrix[i][j] < 0) {
-                    if (matrix[i][j] < storageID) {
-                        productsCount[i][j] = maxProductsInCell;
+                    if (matrix[i][j] < STORAGE_ID) {
+                        productsCount[i][j] = MAX_PRODUCTS_IN_CELL;
                         if (!productType.containsKey(matrix[i][j]))
                             productType.put(matrix[i][j], allProductsTypes.get(matrix[i][j]));
                     }
-                    if (matrix[i][j] == storageID) {
+                    if (matrix[i][j] == STORAGE_ID) {
                         Storage.setPosition(i, j);
                         storage = true;
                     }
-                    if (matrix[i][j] == cashboxID) {
+                    if (matrix[i][j] == CASHBOX_ID) {
                         Cashbox.setPosition(i, j);
                         cashbox = true;
                     }
-                    if (matrix[i][j] == gateID) {
+                    if (matrix[i][j] == GATE_ID) {
                         Gate.setPosition(i, j);
                         gate = true;
                     }
@@ -386,12 +140,10 @@ public class Map {
                 }
             }
         }
-
         if (productType.size() == 0) {
             errorMessage = "На карте должен быть товар!";
             return false;
         }
-
         if (!storage) {
             errorMessage = "На карте нет склада!";
             return false;
@@ -404,37 +156,26 @@ public class Map {
             errorMessage = "На карте нет кассы!";
             return false;
         }
-
         return true;
     }
 
-
     /**
-     *
      * Загружает файл products.txt
-     *
      * */
     private HashMap<Byte, Pair<Integer, String>> allProductsTypesLoad() throws IOException, NumberFormatException {
-        String[] lines = Files.readAllLines(Paths.get(defaultProductsFileName)).toArray(new String[0]);
+        String[] lines = Files.readAllLines(Paths.get(DEFAULT_PRODUCTS_FILE_NAME)).toArray(new String[0]);
         HashMap<Byte, Pair<Integer, String>> allProductsTypes = new HashMap<>();
-
         String[] row;
-
-        for (int i = 0; i < lines.length; i++) {
-            row = lines[i].split(":");
+        for (String line : lines) {
+            row = line.split(":");
             byte ID = Byte.parseByte(row[2]);
             allProductsTypes.put(ID, new Pair<>(Integer.parseInt(row[1]), row[0]));
         }
         return allProductsTypes;
     }
 
-
-
     /**
-     *
      * готова ли карта к работе
-     *
-     *
      * */
     private boolean isReady;
 
@@ -443,104 +184,57 @@ public class Map {
         return isReady;
     }
 
-    public static void initialization(String filename, Pane pane, TextArea textArea) {
-        ourInstance = new Map(filename, pane, textArea);
+    public static void initialization(String filename) {
+        ourInstance = new Map(filename);
     }
-
-
 
     private class Take implements Takeable {
         @Override
         public boolean takeProduct(int row, int column) {
             if (productsCount[row][column] > 0) {
                 productsCount[row][column]--;
-                counters[row][column].setText(String.valueOf(productsCount[row][column]));
-                if (productsCount[row][column] == 0) {
-                    Background back = new Background(new BackgroundImage(emptyCounterImage,
-                            BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
-                            BackgroundPosition.CENTER, BackgroundSize.DEFAULT));
-                    counters[row][column].setBackground(back);
-                }
                 return true;
             }
             return false;
         }
     }
 
-
     class Put implements Putable {
         @Override
         public void putProduct(int row, int column) {
-            productsCount[row][column] = maxProductsInCell;
-            Background back = new Background(new BackgroundImage(counterImages.get(matrix[row][column]),
-                    BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
-                    BackgroundPosition.CENTER, BackgroundSize.DEFAULT));
-            counters[row][column].setBackground(back);
-            counters[row][column].setText(String.valueOf(productsCount[row][column]));
+            productsCount[row][column] = MAX_PRODUCTS_IN_CELL;
         }
     }
 
-
     private boolean customerHasEntered() {
-        return (ThreadLocalRandom.current().nextInt(0, maxCustomers)) == 0;
+        return (ThreadLocalRandom.current().nextInt(0, MAX_CUSTOMERS)) == 0;
     }
 
     /**
-     *
      * один шаг жизненного цикла карты
-     *
      * */
     public void timeStep() {
         if (isReady) {
-
-            if (customers.size() < maxCustomers)
+            if (customers.size() < MAX_CUSTOMERS)
                 if (customerHasEntered())
-                    customers.add(new Customer(new Take(), mapPane, customerImage, textArea));
+                    customers.add(new Customer(new Take()));
             /**
-             *
              * Цикл обработки посетителей
-             *
              * */
+            for (Customer customer : customers)
+                customer.liveStep();
             for (int i = 0; i < customers.size(); i++) {
-                if (!customers.get(i).isMove())
-                    customers.get(i).timeStep();
-            }
-
-
-            for (int i = 0; i < customers.size(); i++) {
-                if (!customers.get(i).isMove()) {
-                    if (customers.get(i).isGoingToLeave()) {
-                        customers.get(i).leave();
-                        customers.remove(i);
-                        i--;
-                    }
+                if (customers.get(i).left()) {
+                    customers.remove(i);
+                    i--;
                 }
             }
-
-            if (!Manager.getInstance().isMove())
-                Manager.getInstance().timeStep();
+            Manager.getInstance().liveStep();
         }
     }
 
-
-    public void pause() {
-        for (Customer customer : customers)
-            customer.pause();
-        Manager.getInstance().pause();
-    }
-
-    public void play() {
-        textArea.setText(textAreaMessage);
-        for (Customer customer : customers)
-            customer.play();
-        Manager.getInstance().play();
-    }
-
-
-
-
     public Pair<Integer, Integer> getNearestMostAttractiveProduct(int row, int column) {
-        byte min = storageID - 1;
+        byte min = STORAGE_ID - 1;
         int pRow = -1, pColumn = -1;
 
         for (int i = -1; i < 2; i++) {
@@ -561,12 +255,10 @@ public class Map {
         return new Pair<>(pRow, pColumn);
     }
 
-
-
     public byte [][] getCopyOfMatrix() {
-        byte [][] copy = new byte[matrixSize][matrixSize];
-        for (int i = 0; i < matrixSize; i++)
-            System.arraycopy(matrix[i], 0, copy[i], 0, matrixSize);
+        byte [][] copy = new byte[MATRIX_SIZE][MATRIX_SIZE];
+        for (int i = 0; i < MATRIX_SIZE; i++)
+            System.arraycopy(matrix[i], 0, copy[i], 0, MATRIX_SIZE);
         return copy;
     }
 
@@ -575,25 +267,15 @@ public class Map {
     }
 
     /**
-     *
      * Возвращает инфу о прилавке с товаром по индексам его расположения
-     *
      * */
     public Pair<Integer, String> getProductInfo(int row, int column) {
         return productType.get(matrix[row][column]);
     }
 
-
-    public Pair<Integer, String> getProductInfo(byte ID) {
-        return productType.get(ID);
-    }
-
     public byte getProductID(int row, int column) {
         return matrix[row][column];
     }
-
-
-
 
     public Product getProductByID(byte ID) {
         return new Product(ID, productType.get(ID));
@@ -607,5 +289,45 @@ public class Map {
         Byte [] ID = productType.keySet().toArray(new Byte[0]);
         Collections.shuffle(Arrays.asList(ID));
         return Arrays.copyOf(ID, length);
+    }
+
+    public byte [][] getCopyOfProductsCountMatrix() {
+        byte [][] copy = new byte[MATRIX_SIZE][MATRIX_SIZE];
+        for (int i = 0; i < MATRIX_SIZE; i++)
+            System.arraycopy(productsCount[i], 0, copy[i], 0, MATRIX_SIZE);
+        return copy;
+    }
+
+    public HashMap<Byte, Pair<Integer, String>> getProductType() {
+        return productType;
+    }
+
+    public String getCustomerInfo(int row, int column) {
+        for (Customer customer : customers) {
+            if (customer.getRow() == row && customer.getColumn() == column) {
+                return customer.getInfo();
+            }
+        }
+        return "";
+    }
+
+    public String getManagerInfo() {
+        return Manager.getInstance().getInfo();
+    }
+
+    public ArrayList<Customer> getCustomers() {
+        return new ArrayList<>(customers);
+    }
+
+    public int getManagerRow() {
+        return Manager.getInstance().getRow();
+    }
+
+    public int getManagerColumn() {
+        return Manager.getInstance().getColumn();
+    }
+
+    public static String getErrorMessage() {
+        return errorMessage;
     }
 }

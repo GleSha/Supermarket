@@ -21,8 +21,6 @@ public class Cashbox {
 
     private int uselessProductProceeds;
 
-
-
     public void pay(int money, int uselessProductMoney) {
         productProceeds += money;
         uselessProductProceeds += uselessProductMoney;

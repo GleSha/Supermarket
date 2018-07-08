@@ -1,239 +1,149 @@
 package model;
 
-import javafx.animation.Animation;
-import javafx.animation.PathTransition;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.scene.CacheHint;
-import javafx.scene.control.TextArea;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Pane;
-import javafx.scene.shape.Polyline;
-import javafx.util.Duration;
 import javafx.util.Pair;
-
 import java.util.ArrayList;
+import java.util.Stack;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Customer {
 
+    /**
+     * необходимые и лишние деньги покупателя
+     * */
     private int freeMoney, necessaryMoney;
 
-    private static final int maxFreeMoney = 1000;
+    private static final int MAX_FREE_MONEY = 1000;
 
     /**
      * товары для покупки
-     *
      * */
     private ArrayList<Product> toBuy;
 
+    /**
+     * цели покупателя - ID всех продуктов по списку, кассы и выхода
+     * */
+    private byte [] targets;
 
+    /**
+     * Номер текущей цели (товара, кассы или выхода)
+     * */
+    private int currentTarget;
+
+    /**
+     * массив флагов, кплен товар или нет
+     * */
     private boolean [] bought;
 
     /**
-     * Номер текущего продукта для покупки
-     *
-     * */
-    private int currentProductToBuy;
-
-    /**
      * "бесполезные товары"
-     *
      * */
     private ArrayList<Product> useless;
 
+    /**
+     * максисмальное число продуктов, которое может купить покупатель
+     * */
+    private static final int MAX_PRODUCTS_TO_BUY = 3;
 
-    private static final int maxProductsToBuy = 3;
+    /**
+     * Сила сопротивляемости покупателя бесполезным товарам
+     * */
+    private static final byte WILLPOWER = 32;
 
-
-    private static final byte willpower = 32;
-
-
+    /**
+     * ссылка на делегат метода класса Map (взять продукт с прилавка)
+     * */
     private Takeable takeable;
 
 
     /**
-     *
      * Координаты покупателя
-     *
      * */
     private int customerRow, customerColumn;
 
-
+    /**
+     * координаты текущей цели покупателя - прилавка с товаром, кассы или выхода
+     * */
+    private int objectRow, objectColumn;
 
     /**
-     *
-     * Специфика отрисовки
-     *
+     * Пустые прилавки, которые запоминает покупатель
+     * (список координат)
      * */
-
-    private ImageView imageView;
+    private ArrayList<Pair<Integer, Integer>> emptyCounters;
 
     /**
-     *
-     * контейнер для отрисовки
-     *
+     * вышел покупатель из магазина или нет
      * */
-    private Pane pane;
+    private boolean left;
 
     /**
-     *
-     * Класс анимации пути
-     *
+     * копия матрицы карты (нужна для алгоритма поиска пути)
      * */
-    private PathTransition path;
+    private byte [][] matrix;
 
-    private TextArea textArea;
+    /**
+     * Путь покупателя (список координат)
+     * */
+    private Stack<Pair<Integer, Integer>> path;
 
-    public Customer(Takeable takeable, Pane pane, Image customerImage, TextArea textArea) {
+    /**
+     * максимальная и минимальная длина пути
+     * */
+    private final byte MAX_STEP = Byte.MAX_VALUE;
 
+    private final byte MIN_STEP = 1;
+
+    /**
+     * конструктор
+     * */
+    public Customer(Takeable takeable) {
         this.takeable = takeable;
-
-        int productCount = ThreadLocalRandom.current().nextInt(1, maxProductsToBuy + 1);
+        int productCount = ThreadLocalRandom.current().nextInt(1, MAX_PRODUCTS_TO_BUY + 1);
         if (productCount > Map.getInstance().getProductsAssortment())
             productCount = Map.getInstance().getProductsAssortment();
-        currentProductToBuy = 0;
+        targets = new byte[productCount + 2];
+        currentTarget = 0;
         toBuy = new ArrayList<>();
-
         Byte [] productsID = Map.getInstance().getShuffleProductsID(productCount);
-
         for (int i = 0; i < productCount; i++) {
             Product toAdd = Map.getInstance().getProductByID(productsID[i]);
             necessaryMoney += toAdd.getCost();
             toBuy.add(toAdd);
+            targets[i] = productsID[i];
         }
-
+        targets[productCount] = Map.CASHBOX_ID;
+        targets[productCount + 1] = Map.GATE_ID;
         bought = new boolean[productCount];
-
-        freeMoney = ThreadLocalRandom.current().nextInt(0, maxFreeMoney);
+        freeMoney = ThreadLocalRandom.current().nextInt(0, MAX_FREE_MONEY);
         useless = new ArrayList<>();
-
-        justPaid = false;
-        isMove = false;
-        isNear = false;
-        isGoingToLeave = false;
-
         customerRow = Gate.getRow();
         customerColumn = Gate.getColumn();
-
-        this.pane = pane;
-
-        this.textArea = textArea;
-
-        imageView = new ImageView(customerImage);
-        imageView.setCache(true);
-        imageView.setCacheHint(CacheHint.SPEED);
-        imageView.setY(customerRow * Map.padding);
-        imageView.setX(customerColumn * Map.padding);
-        imageView.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                if (paused) {
-                    int check = 0;
-                    StringBuilder info = new StringBuilder("Необходимые деньги: " + necessaryMoney);
-                    info.append("\nЛишние деньги: ").append(freeMoney).append("\nСписок:\n");
-                    for (int i = 0; i < toBuy.size(); i++) {
-                        info.append(toBuy.get(i).getName()).append(" - ");
-                        if (bought[i]) {
-                            info.append("куплено\n");
-                            check += toBuy.get(i).getCost();
-                        }
-                        else
-                            info.append("не куплено\n");
-                    }
-                    info.append("\nБесполезные продукты:\n");
-                    if (useless.size() > 0) {
-                        for (Product uselessProduct : useless) {
-                            info.append(uselessProduct.getName()).append("\n");
-                            check += uselessProduct.getCost();
-                        }
-                    }
-                    else
-                        info.append("нет");
-                    info.append("\n\nСумма покупки: ").append(check);
-                    textArea.setText(info.toString());
-                }
-            }
-        });
-
-
-        pane.getChildren().add(imageView);
-
         emptyCounters = new ArrayList<>();
-
     }
 
-
-    private int objectRow, objectColumn;
-
-
-    private boolean paused;
-
-
     /**
-     *
-     * двигается ли покупатель в данный момент
-     *
-     * */
-
-    private boolean isMove;
-
-    /**
-     *
-     * расплатился ли покупатель
-     *
-     * */
-    private boolean justPaid;
-
-    /**
-     *
-     * рядом ли покупатель с пнуктом назначения
-     *
-     * */
-    private boolean isNear;
-
-    /**
-     *
-     * Собирается ли покупатель выйти из магазина
-     *
-     * */
-    private boolean isGoingToLeave;
-
-    public boolean isGoingToLeave() {
-        return isGoingToLeave;
-    }
-
-    public boolean isMove() {
-        return isMove;
-    }
-
-
-    /**
-     *
      * взять товар по координатам
      * false, если товара там больше нет
-     *
      * */
     private boolean takeProduct() {
-        return takeable.takeProduct(objectRow, objectColumn);
+        if (takeable.takeProduct(objectRow, objectColumn)) {
+            necessaryMoney -= toBuy.get(currentTarget).getCost();
+            return true;
+        }
+        return false;
     }
 
     /**
-     *
      *  если покупателя привлек бесполезный продукт, возвращает продукт
      *  иначе - null
-     *
      * */
     private Product takeUselessProduct() {
         Pair<Integer, Integer> coords = Map.getInstance().getNearestMostAttractiveProduct(customerRow, customerColumn);
-
         if (coords != null) {
             if (Map.getInstance().getProductCount(coords.getKey(), coords.getValue())  > 0) {
                 byte ID = Map.getInstance().getProductID(coords.getKey(), coords.getValue());
                 Product uselessProduct = Map.getInstance().getProductByID(ID);
-                if (Math.abs(ID) > ThreadLocalRandom.current().nextInt(0, willpower + 1)
+                if (Math.abs(ID) > ThreadLocalRandom.current().nextInt(0, WILLPOWER + 1)
                         && uselessProduct.getCost() < freeMoney) {
                     freeMoney -= uselessProduct.getCost();
                     takeable.takeProduct(coords.getKey(), coords.getValue());
@@ -244,361 +154,289 @@ public class Customer {
         return null;
     }
 
-
     /**
-     *
      * Шаг обработки покупателя
-     *
      * */
-    public void timeStep() {
-        if (currentProductToBuy < toBuy.size()) {
-            if (noMore) {
-                currentProductToBuy++;
-                emptyCounters.clear();
-                if (currentProductToBuy == toBuy.size()) {
-                    boolean toPay = false;
-                    for (int i = 0; i < bought.length; i++) {
-                        if (bought[i]) {
-                            toPay = true;
-                            break;
-                        }
-                    }
-                    if (!toPay)
-                        justPaid = true;
+    public void liveStep() {
+        /**
+         * 1    найти путь
+         * 2    передвинуться
+         * 3    если путь завершен - действовать (взять товар/расплатиться)
+         * */
+        if (currentTarget < targets.length) {
+            if (path == null) {
+                byte pathLength = findPath(customerRow, customerColumn, targets[currentTarget]);
+
+                if (pathLength == 1) {
+                    /**
+                     * Берем товар, платим или выходим
+                     * */
+                    action(currentTarget);
                 }
-                noMore = false;
-                return;
-            }
-            if (!isNear) {
-                path = findPath(customerRow, customerColumn, toBuy.get(currentProductToBuy).getID());
-                if (path != null) {
-                    isMove = true;
-                    path.setNode(imageView);
-                    path.play();
+                if (pathLength == MAX_STEP) {
+                    /**
+                     * товара нет
+                     * */
+                    path = null;
+                    currentTarget++;
+                    if (currentTarget == targets.length - 2) {
+                        boolean goHome = true;
+                        for (boolean b : bought) {
+                            if (b) {
+                                goHome = false;
+                                break;
+                            }
+                        }
+                        if (goHome)
+                            currentTarget = targets.length - 1;
+                    }
+                    emptyCounters.clear();
                 }
             }
             else {
-                path = null;
-                if (takeProduct()) {
-                    necessaryMoney -= toBuy.get(currentProductToBuy).getCost();
-                    Product uselessProduct = takeUselessProduct();
-                    if (uselessProduct != null)
-                        useless.add(uselessProduct);
-                    bought[currentProductToBuy++] = true;
-                    isNear = false;
-                }
+                /**
+                 * если есть путь, идем по пути
+                 * */
+                if (!path.isEmpty())
+                    moveTo(path.pop());
                 else {
-                    emptyCounters.add(new Pair<>(objectRow, objectColumn));
-                    isNear = false;
+                    /**
+                     * иначе - мы у цели, действуем
+                     * */
+                    path = null;
+                    action(currentTarget);
                 }
             }
         }
-        else if (!justPaid) {
-            if (!isNear) {
-                path = findPath(customerRow, customerColumn, Map.cashboxID);
-                if (path != null) {
-                    isMove = true;
-                    path.setNode(imageView);
-                    path.play();
-                }
-            }
-            else {
-                path = null;
-                int sum = 0, uselessSum = 0;
-                for (int i = 0; i < toBuy.size(); i++) {
-                    if (bought[i]) {
-                        sum += toBuy.get(i).getCost();
-                    }
-                }
+    }
 
-                for (int i = 0; i < useless.size(); i++) {
-                    if (bought[i]) {
-                        uselessSum += useless.get(i).getCost();
-                    }
-                }
-
-                Cashbox.getInstance().pay(sum, uselessSum);
-                isNear = false;
-                justPaid = true;
+    /**
+     * действие покупателя (покупка, оплата, выход)
+     * параметр - номер текущей цели
+     * */
+    private void action(int targetIndex) {
+        if (targetIndex < toBuy.size()) {
+            /**
+             * если товар есть на полке, то берем его, переходим к следующей цели
+             * если товара нет, запоминаем координаты пустого прилавка
+             * */
+            if (takeProduct()) {
+                bought[currentTarget] = true;
+                currentTarget++;
+                /**
+                 * Проверяем, возьмет ли пользователь бесполезный продукт
+                 * */
+                Product uselessProduct = takeUselessProduct();
+                if (uselessProduct != null)
+                    useless.add(uselessProduct);
             }
+            else
+                emptyCounters.add(new Pair<>(objectRow, objectColumn));
+        }
+        else if (targets[targetIndex] == Map.CASHBOX_ID) {
+            /**
+             * покупаем товары
+             * */
+            int sum = 0, uselessSum = 0;
+            for (int i = 0; i < toBuy.size(); i++)
+                if (bought[i])
+                    sum += toBuy.get(i).getCost();
+            for (Product uselessProduct : useless)
+                uselessSum += uselessProduct.getCost();
+            Cashbox.getInstance().pay(sum, uselessSum);
+            currentTarget++;
         }
         else {
-            if (!isGoingToLeave) {
-                if (!isNear) {
-                    path = findPath(customerRow, customerColumn, Map.gateID);
-                    if (path != null) {
-                        isMove = true;
-                        path.setNode(imageView);
-                        path.play();
-                    }
-                } else {
-                    path = null;
-                    isGoingToLeave = true;
-                }
-            }
+            /**
+             * мы у выхода - покидаем карту
+             * */
+            left = true;
+            currentTarget++;
         }
     }
 
-
     /**
-     *
-     * Покупатель уходит из магазина
-     *
+     * метод нужен для удаления картой покупателя
      * */
-    public void leave() {
-        pane.getChildren().remove(imageView);
+    public boolean left() {
+       return left;
     }
 
 
-
     /**
-     *
-     * Приостановка и запук анимации
-     * (используется во время остановки симуляции)
-     *
+     * пережвигает покупателя на 1 шаг по карте
+     * параметр {@param coords} не должнен быть равен null
      * */
-    public void pause() {
-        paused = true;
-        if (path != null)
-            path.pause();
+    private void moveTo(Pair<Integer, Integer> coords) {
+        customerRow = coords.getKey();
+        customerColumn = coords.getValue();
     }
 
-    public void play() {
-        paused = false;
-        if (path != null) {
-            if (path.getStatus() == Animation.Status.PAUSED) {
-                path.play();
-            }
+    /**
+     * возвращает длину пути
+     * если она равна MIN_STEP, то мы рядом, идти никуда не нужно
+     * если MAX_STEP, то товара больше нет, идем за слудющим
+     * если иное, то путь есть, идем по нему
+     * */
+    private byte findPath(int row, int column, byte objectID) {
+        matrix = Map.getInstance().getCopyOfMatrix();
+        if (objectID < Map.STORAGE_ID)
+            if (noMoreProduct(objectID))
+                return MAX_STEP;
+        if (objectID == Map.GATE_ID)
+            if (row == Gate.getRow() && column == Gate.getColumn())
+                return MIN_STEP;
+        byte step = startWave(row, column, objectID);
+        if (step > MIN_STEP && step < MAX_STEP) {
+            restorePath(step, objectID);
+            return step;
         }
+        return step;
     }
 
 
-
     /**
-     *
-     * Пустые прилавки, которые запоминает покупатель
-     * список координат
-     *
+     *  проходимся по всем местам, где товар закончился,
+     *  и проверяем его наличие заново
      * */
-    private ArrayList<Pair<Integer, Integer>> emptyCounters;
-
-
-    /**
-     *
-     * больше нет ни одного прилавка с наличием нужного товара
-     *
-     * */
-    private boolean noMore;
-
-    /**
-     *
-     * Ищет путь до чего-либо
-     *
-     * возвращает null, если путь до объекта имеет длину 1, то есть
-     * объект находится рядом и идти никуда не нужно (если noMore = false)
-     *
-     * если noMore = true, то объекта нет на карте
-     *
-     *
-     *
-     * */
-
-    private PathTransition findPath(int row, int column, byte objectID) {
-
-        byte [][] cMatrix = Map.getInstance().getCopyOfMatrix();
-
-
-
-        /**
-         *
-         *  проходимсся по всем местам, где товар закончился,
-         *  и проверяем его наличие заново
-         *
-         * */
-
+    private boolean noMoreProduct(byte productID) {
         if (emptyCounters.size() > 0) {
-
             for (int i = 0; i < emptyCounters.size(); i++) {
                 int emptyRow = emptyCounters.get(i).getKey();
                 int emptyColumn = emptyCounters.get(i).getValue();
                 if (Map.getInstance().getProductCount(emptyRow, emptyColumn) == 0)
-                    cMatrix[emptyRow][emptyColumn] = -1;
+                    matrix[emptyRow][emptyColumn] = -1;
                 else
                     emptyCounters.remove(i--);
             }
 
-
             boolean hasProduct = false;
 
-            for (int i = 0; i < 15; i++) {
-                for (int j = 0; j < 15; j++) {
-                    if (cMatrix[i][j] == objectID) {
+            for (int i = 0; i < matrix.length; i++) {
+                for (int j = 0; j < matrix.length; j++) {
+                    if (matrix[i][j] == productID) {
                         hasProduct = true;
                         break;
                     }
                 }
             }
-
             /**
-             *
              * товара нет - выходим
-             *
              * */
-
-            if (!hasProduct) {
-                noMore = true;
-                return null;
-            }
+            return !hasProduct;
         }
+        return false;
+    }
 
-
-        /**
-         *
-         * Распространение волны
-         *
-         *
-         * */
-
-
+    /**
+     * Распространение волны
+     * Возвращает длину пути
+     * метод вернет 127, если цель вне досягяаемости
+     * */
+    private byte startWave(int row, int column, byte objectID) {
         byte step = 1;
-
-        cMatrix[row][column] = step;
-
+        matrix[row][column] = step;
         int destX = -1, destY = -1;
-
         boolean isFinished = false;
-
         while (step < Byte.MAX_VALUE) {
-
-            for (int i = 0; i < cMatrix.length; i++) {
-
-                for (int j = 0; j < cMatrix.length; j++) {
-
-                    if (cMatrix[i][j] == step) {
-
+            for (int i = 0; i < matrix.length; i++) {
+                for (int j = 0; j < matrix.length; j++) {
+                    if (matrix[i][j] == step) {
                         for (int iOffset = -1; iOffset < 2; iOffset++) {
-
-                            if (i + iOffset < 0 || i + iOffset > cMatrix.length - 1)
+                            if (i + iOffset < 0 || i + iOffset > matrix.length - 1)
                                 continue;
-
                             for (int jOffset = -1; jOffset < 2; jOffset++) {
-
-                                if (j + jOffset < 0 || j + jOffset > cMatrix.length - 1)
+                                if (j + jOffset < 0 || j + jOffset > matrix.length - 1)
                                     continue;
-
-                                if (cMatrix[i + iOffset][j + jOffset] == 0)
-                                    cMatrix[i + iOffset][j + jOffset] = (byte) (step + 1);
-                                else if (cMatrix[i + iOffset][j + jOffset] == objectID) {
+                                if (matrix[i + iOffset][j + jOffset] == 0)
+                                    matrix[i + iOffset][j + jOffset] = (byte) (step + 1);
+                                else if (matrix[i + iOffset][j + jOffset] == objectID) {
                                     isFinished = true;
                                     destX = j + jOffset;
                                     destY = i + iOffset;
                                     break;
                                 }
-
                             }
-
                         }
-
                     }
-
                 }
-
             }
             if (isFinished)
                 break;
             step++;
         }
+        if (step < Byte.MAX_VALUE) {
+            /**
+             * координаты найденного товара или объекта
+             * */
+            objectRow = destY;
+            objectColumn = destX;
+        }
+        return step;
+    }
 
-
-        /**
-         *
-         * координаты найденного товара или объекта
-         *
-         * */
-
-        objectRow = destY;
-        objectColumn = destX;
-
-
-        /**
-         *
-         * Восстановление пути
-         *
-         * */
-        ArrayList<Pair<Integer, Integer>> path = new ArrayList<>();
-
-
-        PathTransition p;
-
-
-        double [] arr;
-
-        if (step > 1) {
-
-            if (objectID == Map.gateID)
-                path.add(new Pair<>(Gate.getRow(), Gate.getColumn()));
-
-            do {
-                for (int iOffset = -1; iOffset < 2; iOffset++) {
-                    if (destY + iOffset < 0 || destY + iOffset > cMatrix.length - 1)
+    /**
+     * {@param step} должен быть в пределах от MIN_STEP до MAX_STEP
+     * */
+    private void restorePath(byte step, byte objectID) {
+        path = new Stack<>();
+        if (objectID == Map.GATE_ID)
+            path.push(new Pair<>(Gate.getRow(), Gate.getColumn()));
+        do {
+            for (int iOffset = -1; iOffset < 2; iOffset++) {
+                if (objectRow + iOffset < 0 || objectRow + iOffset > matrix.length - 1)
+                    continue;
+                for (int jOffset = -1; jOffset < 2; jOffset++) {
+                    if (objectColumn + jOffset < 0 || objectColumn + jOffset > matrix.length - 1)
                         continue;
-                    for (int jOffset = -1; jOffset < 2; jOffset++) {
-                        if (destX + jOffset < 0 || destX + jOffset > cMatrix.length - 1)
-                            continue;
-                        if (cMatrix[destY + iOffset][destX + jOffset] == step) {
-                            path.add(new Pair<>(destY + iOffset, destX + jOffset));
-                            destY += iOffset;
-                            destX += jOffset;
-                            step--;
-                            break;
-                        }
+                    if (matrix[objectRow + iOffset][objectColumn + jOffset] == step) {
+                        path.push(new Pair<>(objectRow + iOffset, objectColumn + jOffset));
+                        objectRow += iOffset;
+                        objectColumn += jOffset;
+                        step--;
+                        break;
                     }
                 }
             }
-            while (step > 0);
-
-
-            arr = new double[path.size() * 2];
-
-            int index = 0;
-
-
-            /**
-             *
-             * обновляем координаты покупателя
-             *
-             * */
-            customerRow = path.get(0).getKey();
-            customerColumn = path.get(0).getValue();
-
-            for (int i = arr.length - 2; i >= 0; i -= 2) {
-                arr[i] = path.get(index).getValue() * Map.padding + Map.halfPadding;
-                arr[i + 1] = path.get(index).getKey() * Map.padding + Map.halfPadding;
-                index++;
-            }
-
-            p = new PathTransition();
-
-            p.setPath(new Polyline(arr));
-
-            p.setDuration(Duration.seconds(arr.length / 2.5));
-
-            p.setOnFinished(new EventHandler<ActionEvent>() {
-                @Override
-                public void handle(ActionEvent event) {
-                    isMove = false;
-                    isNear = true;
-                }
-            });
-
-            p.setCycleCount(1);
         }
-        else {
-            isNear = true;
-            p = null;
-        }
-        return p;
+        while (step > 0);
     }
 
 
+    public int getRow() {
+        return customerRow;
+    }
+
+    public int getColumn() {
+        return customerColumn;
+    }
+
+    /**
+     * Возвращает строку с текущей информацией о покупателе
+     * */
+    public String getInfo() {
+        int check = 0;
+        StringBuilder info = new StringBuilder("Необходимые деньги: " + necessaryMoney);
+        info.append("\nЛишние деньги: ").append(freeMoney).append("\nСписок:\n");
+        for (int i = 0; i < toBuy.size(); i++) {
+            info.append(toBuy.get(i).getName()).append(" - ");
+            if (bought[i]) {
+                info.append("куплено\n");
+                check += toBuy.get(i).getCost();
+            }
+            else
+                info.append("не куплено\n");
+        }
+        info.append("\nБесполезные продукты:\n");
+        if (useless.size() > 0) {
+            for (Product uselessProduct : useless) {
+                info.append(uselessProduct.getName()).append("\n");
+                check += uselessProduct.getCost();
+            }
+        }
+        else
+            info.append("нет");
+        info.append("\n\nСумма покупки: ").append(check);
+        return info.toString();
+    }
 }
