@@ -16,7 +16,9 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-
+        /**
+         * Создание формы приложения
+         * */
         Parent root = FXMLLoader.load(getClass().getResource("form.fxml"));
         primaryStage.setTitle("Супермаркет");
         root.setCache(true);
@@ -28,6 +30,9 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) {
+        /**
+         * Запуск программы
+         * */
         launch(args);
     }
 }

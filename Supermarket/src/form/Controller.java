@@ -19,35 +19,58 @@ import model.Map;
 import java.io.File;
 
 public class Controller {
-
-
     /**
-     *
      * Ссылки на контролы из form.fxml
-     *
      * */
-
     @FXML
     private Pane pane, mapPane;
 
+    /**
+     * Сслыки на все кнопки формы
+     * */
     @FXML
     private Button mapChooseButton, startButton, pauseButton, loadMapButton, resetButton;
 
+    /**
+     * Ссылки на все лейблы формы
+     * */
     @FXML
     private Label productProceedsLabel, uselessProductProceedsLabel, commonProceedsLabel, currentMapNameLabel;
 
+    /**
+     * Ссылка на текстовое поле с информацией
+     * */
     @FXML
     private TextArea textField;
 
+    /**
+     * Объект класса FileChooser для выбора файла в диалоговым окне
+     * */
     private static FileChooser fileChooser = new FileChooser();
+
+    /**
+     * Класс TimeLine - таймер программы
+     * */
     private Timeline timeline;
 
+    /**
+     * имя файла текущей карты
+     * */
     private String currentMapName = Map.DEFAULT_MAP_NAME;
 
+    /**
+     * сообщение на поле textField
+     * */
     private static String message;
 
+    /**
+     * Ссылка на класс, отвечающий за отрисовку
+     * */
     private Drawer drawer;
 
+    /**
+     * Обработчик события нажатия на кнопку "Загрузить карту"
+     * */
     public void loadMapButtonClick(ActionEvent actionEvent) {
         message = textField.getText();
         Map.initialization(currentMapName);
@@ -67,6 +90,9 @@ public class Controller {
         }
     }
 
+    /**
+     * Обработчик события нажатия на кнопку "Загрузить карту"
+     * */
     public void startButtonClick(ActionEvent actionEvent) {
         if (Map.getInstance().isReady()) {
             startButton.setDisable(true);
@@ -90,6 +116,9 @@ public class Controller {
         }
     }
 
+    /**
+     * Обработчик события нажатия на кнопку "Сброс"
+     * */
     public void resetButtonClick(ActionEvent actionEvent) {
         startButton.setDisable(true);
         pauseButton.setDisable(true);
@@ -106,6 +135,9 @@ public class Controller {
         mapPane.getChildren().removeAll(mapPane.getChildren());
     }
 
+    /**
+     * Обработчик события нажатия на кнопку "Пауза/Далее"
+     * */
     public void pauseButtonClick(ActionEvent actionEvent) {
         if (timeline != null) {
             if (timeline.getStatus() == Animation.Status.RUNNING) {
@@ -122,6 +154,9 @@ public class Controller {
         }
     }
 
+    /**
+     * Обработчик события нажатия на кнопку "Выбрать карту"
+     * */
     public void mapChooseButtonClick(ActionEvent actionEvent) {
         fileChooser.getExtensionFilters()
                 .add(new FileChooser.ExtensionFilter("Файлы карт", "*.map"));

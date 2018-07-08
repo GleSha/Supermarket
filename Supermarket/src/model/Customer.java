@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Stack;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class Customer {
+public class Customer extends ObjectOnMap {
 
     /**
      * необходимые и лишние деньги покупателя
@@ -50,20 +50,9 @@ public class Customer {
     private static final byte WILLPOWER = 32;
 
     /**
-     * ссылка на делегат метода класса Map (взять продукт с прилавка)
-     * */
-    private Takeable takeable;
-
-
-    /**
-     * Координаты покупателя
-     * */
-    private int customerRow, customerColumn;
-
-    /**
      * координаты текущей цели покупателя - прилавка с товаром, кассы или выхода
      * */
-    private int objectRow, objectColumn;
+    private int targetRow, targetColumn;
 
     /**
      * Пустые прилавки, которые запоминает покупатель
@@ -96,8 +85,7 @@ public class Customer {
     /**
      * конструктор
      * */
-    public Customer(Takeable takeable) {
-        this.takeable = takeable;
+    public Customer() {
         int productCount = ThreadLocalRandom.current().nextInt(1, MAX_PRODUCTS_TO_BUY + 1);
         if (productCount > Map.getInstance().getProductsAssortment())
             productCount = Map.getInstance().getProductsAssortment();
@@ -116,8 +104,8 @@ public class Customer {
         bought = new boolean[productCount];
         freeMoney = ThreadLocalRandom.current().nextInt(0, MAX_FREE_MONEY);
         useless = new ArrayList<>();
-        customerRow = Gate.getRow();
-        customerColumn = Gate.getColumn();
+        objectOnMapRow = Gate.getRow();
+        objectOnMapColumn = Gate.getColumn();
         emptyCounters = new ArrayList<>();
     }
 
@@ -126,7 +114,7 @@ public class Customer {
      * false, если товара там больше нет
      * */
     private boolean takeProduct() {
-        if (takeable.takeProduct(objectRow, objectColumn)) {
+        if (Map.getInstance().takeProduct(targetRow, targetColumn)) {
             necessaryMoney -= toBuy.get(currentTarget).getCost();
             return true;
         }
@@ -138,7 +126,7 @@ public class Customer {
      *  иначе - null
      * */
     private Product takeUselessProduct() {
-        Pair<Integer, Integer> coords = Map.getInstance().getNearestMostAttractiveProduct(customerRow, customerColumn);
+        Pair<Integer, Integer> coords = Map.getInstance().getNearestMostAttractiveProduct(objectOnMapRow, objectOnMapColumn);
         if (coords != null) {
             if (Map.getInstance().getProductCount(coords.getKey(), coords.getValue())  > 0) {
                 byte ID = Map.getInstance().getProductID(coords.getKey(), coords.getValue());
@@ -146,7 +134,7 @@ public class Customer {
                 if (Math.abs(ID) > ThreadLocalRandom.current().nextInt(0, WILLPOWER + 1)
                         && uselessProduct.getCost() < freeMoney) {
                     freeMoney -= uselessProduct.getCost();
-                    takeable.takeProduct(coords.getKey(), coords.getValue());
+                    Map.getInstance().takeProduct(coords.getKey(), coords.getValue());
                     return uselessProduct;
                 }
             }
@@ -165,7 +153,7 @@ public class Customer {
          * */
         if (currentTarget < targets.length) {
             if (path == null) {
-                byte pathLength = findPath(customerRow, customerColumn, targets[currentTarget]);
+                byte pathLength = findPath(objectOnMapRow, objectOnMapColumn, targets[currentTarget]);
 
                 if (pathLength == 1) {
                     /**
@@ -231,7 +219,7 @@ public class Customer {
                     useless.add(uselessProduct);
             }
             else
-                emptyCounters.add(new Pair<>(objectRow, objectColumn));
+                emptyCounters.add(new Pair<>(targetRow, targetColumn));
         }
         else if (targets[targetIndex] == Map.CASHBOX_ID) {
             /**
@@ -258,6 +246,7 @@ public class Customer {
     /**
      * метод нужен для удаления картой покупателя
      * */
+    @Override
     public boolean left() {
        return left;
     }
@@ -268,8 +257,8 @@ public class Customer {
      * параметр {@param coords} не должнен быть равен null
      * */
     private void moveTo(Pair<Integer, Integer> coords) {
-        customerRow = coords.getKey();
-        customerColumn = coords.getValue();
+        objectOnMapRow = coords.getKey();
+        objectOnMapColumn = coords.getValue();
     }
 
     /**
@@ -369,8 +358,8 @@ public class Customer {
             /**
              * координаты найденного товара или объекта
              * */
-            objectRow = destY;
-            objectColumn = destX;
+            targetRow = destY;
+            targetColumn = destX;
         }
         return step;
     }
@@ -384,15 +373,15 @@ public class Customer {
             path.push(new Pair<>(Gate.getRow(), Gate.getColumn()));
         do {
             for (int iOffset = -1; iOffset < 2; iOffset++) {
-                if (objectRow + iOffset < 0 || objectRow + iOffset > matrix.length - 1)
+                if (targetRow + iOffset < 0 || targetRow + iOffset > matrix.length - 1)
                     continue;
                 for (int jOffset = -1; jOffset < 2; jOffset++) {
-                    if (objectColumn + jOffset < 0 || objectColumn + jOffset > matrix.length - 1)
+                    if (targetColumn + jOffset < 0 || targetColumn + jOffset > matrix.length - 1)
                         continue;
-                    if (matrix[objectRow + iOffset][objectColumn + jOffset] == step) {
-                        path.push(new Pair<>(objectRow + iOffset, objectColumn + jOffset));
-                        objectRow += iOffset;
-                        objectColumn += jOffset;
+                    if (matrix[targetRow + iOffset][targetColumn + jOffset] == step) {
+                        path.push(new Pair<>(targetRow + iOffset, targetColumn + jOffset));
+                        targetRow += iOffset;
+                        targetColumn += jOffset;
                         step--;
                         break;
                     }
@@ -400,15 +389,6 @@ public class Customer {
             }
         }
         while (step > 0);
-    }
-
-
-    public int getRow() {
-        return customerRow;
-    }
-
-    public int getColumn() {
-        return customerColumn;
     }
 
     /**

@@ -4,7 +4,7 @@ import javafx.util.Pair;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class Manager {
+public class Manager extends ObjectOnMap {
 
     private static Manager ourInstance = new Manager();
 
@@ -14,19 +14,9 @@ public class Manager {
 
     private Manager() {
         currentAction = ActionType.INACTIVITY;
-        managerRow = Storage.getRow();
-        managerColumn = Storage.getColumn();
+        objectOnMapRow = Storage.getRow();
+        objectOnMapColumn = Storage.getColumn();
     }
-
-    /**
-     * ссылка на делегируемый метод (положить продукт на прилавок)
-     * */
-    private Putable putable;
-
-    /**
-     * Координаты менеджера
-     * */
-    private int managerRow, managerColumn;
 
     /**
      * координаты пустого прилавка
@@ -74,15 +64,8 @@ public class Manager {
         static final int INACTIVITY = 4;        //ждать появления пустого прилавка
     }
 
-    /**
-     * задать метод делегат (положить продукт)
-     * */
-    public void setPutable(Putable putable) {
-        this.putable = putable;
-    }
-
     private void putProduct() {
-        putable.putProduct(emptyCounterRow, emptyCounterColumn);
+        Map.getInstance().putProduct(emptyCounterRow, emptyCounterColumn);
         refill = null;
         emptyCounterRow = -1;
         emptyCounterColumn = -1;
@@ -91,6 +74,7 @@ public class Manager {
     /**
      * шаг жизненного цикла менеджера
      * */
+    @Override
     public void liveStep() {
         action(currentAction);
     }
@@ -146,8 +130,8 @@ public class Manager {
      * параметр {@param coords} не должнен быть равен null
      * */
     private void moveTo(Pair<Integer, Integer> coords) {
-        managerRow = coords.getKey();
-        managerColumn = coords.getValue();
+        objectOnMapRow = coords.getKey();
+        objectOnMapColumn = coords.getValue();
     }
 
     /**
@@ -176,7 +160,6 @@ public class Manager {
      * есть пустые прилавки
      * */
     private void findPath() {
-        //matrix = Map.getInstance().getCopyOfMatrix();
         path = null;
         byte step = startWave();
         if (step > MIN_STEP)
@@ -252,14 +235,6 @@ public class Manager {
         }
         while (step > 0);
         Collections.reverse(path);
-    }
-
-    public int getRow() {
-        return managerRow;
-    }
-
-    public int getColumn() {
-        return managerColumn;
     }
 
     public String getInfo() {

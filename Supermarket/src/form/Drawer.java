@@ -18,7 +18,6 @@ import javafx.scene.text.Font;
 import javafx.util.Duration;
 import javafx.util.Pair;
 import model.*;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,43 +26,71 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Drawer {
 
+    /**
+     * Ссылка на карту
+     * */
     private Map map;
 
+    /**
+     * Ссылка на текстовое поле для вывода информации
+     * */
     private TextArea textArea;
 
+    /**
+     * Ширина одной клетки карты в пикселях
+     * */
     private static final int padding = 32;
 
+    /**
+     * Толщина горизонтальных и вертикальных линий для отображения карты
+     * */
     private static final double horizLineWidth = 1.5;
 
     private static final double verticLineWidth = 0.5;
 
+    /**
+     * копии массивов matrix и productsCount карты
+     * */
     private byte[][] matrix, productsCount;
 
+    /**
+     * Массив лейблов, каждый элемент массива изображает прилавок с товаром
+     * */
     private Label[][] counters;
 
+    /**
+     * Хеш-таблица изображений прилавков
+     * */
     private HashMap<Byte, Image> counterImages;
 
+    /**
+     * Изображение пустого прилавка
+     * */
     private Background emptyCounter;
 
+    /**
+     * массив ImageView, предназначеных для отрисовки изображений покупателей
+     * */
     private ImageView[] customerImageView;
 
+    /**
+     * ImageView, предназначеный для отрисовки изображения менеджера
+     * */
     private ImageView managerImageView;
 
+    /**
+     * Флаг - остановлена симуляция или нет
+     * */
     private boolean paused;
-
-    public void setPaused(boolean paused) {
-        this.paused = paused;
-    }
 
     public Drawer(Map map, Pane pane, TextArea textArea) {
         this.map = map;
         this.textArea = textArea;
-
-
         HashMap<Byte, Pair<Integer, String>> productType = map.getProductType();
-
         try {
-
+            /**
+             * Загрузка всех изображений
+             * */
             Image customerImage = new Image(new FileInputStream("sources/images/customer.png"));
             Image managerImage = new Image(new FileInputStream("sources/images/manager.png"));
             Image emptyCounterImage = new Image(new FileInputStream("sources/images/counters/emptyCounter.png"));
@@ -78,8 +105,10 @@ public class Drawer {
                 counterImages.put(productID, image);
             }
 
+            /**
+             * Отрисовка сетки
+             * */
             int matrixSize = Map.MATRIX_SIZE;
-
             for (int i = 0; i < matrixSize + 1; i++) {
                 Line line = new Line(i * padding, 0, i * padding, padding * matrixSize);
                 line.setStroke(Color.BLUE);
@@ -95,6 +124,9 @@ public class Drawer {
                 pane.getChildren().add(line);
             }
 
+            /**
+             * Отрисовка прилавков с товарами
+             * */
             matrix = map.getCopyOfMatrix();
             productsCount = map.getCopyOfProductsCountMatrix();
             counters = new Label[matrixSize][matrixSize];
@@ -132,7 +164,9 @@ public class Drawer {
                 }
             }
 
-
+            /**
+             * Создание и добавление изображений кассы, входа и склада
+             * */
             ImageView iv = new ImageView(storageImage);
             iv.setCache(true);
             iv.setCacheHint(CacheHint.SPEED);
@@ -154,7 +188,9 @@ public class Drawer {
             iv.setX(Gate.getColumn() * padding);
             pane.getChildren().add(iv);
 
-
+            /**
+             * Создание и добавдение всех изображений покупателей
+             * */
             customerImageView = new ImageView[Map.MAX_CUSTOMERS];
             for (int i = 0; i < customerImageView.length; i++) {
                 customerImageView[i] = new ImageView(customerImage);
@@ -164,7 +200,9 @@ public class Drawer {
                 pane.getChildren().add(customerImageView[i]);
             }
 
-
+            /**
+             * создание и добавление изображения менеджера
+             * */
             managerImageView = new ImageView(managerImage);
             managerImageView.setCache(true);
             managerImageView.setCacheHint(CacheHint.SPEED);
@@ -176,9 +214,12 @@ public class Drawer {
                         textArea.setText(map.getManagerInfo());
                 }
             });
-
             pane.getChildren().add(managerImageView);
 
+            /**
+             * добавление слушателя на событие "клик мышью по объекту mapPane", который
+             * выводит информацию о покупателе в данном месте
+             * */
             pane.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
                 @Override
                 public void handle(MouseEvent event) {
@@ -202,18 +243,29 @@ public class Drawer {
         }
     }
 
+    /**
+     * Установка флага paused
+     * */
+    public void setPaused(boolean paused) {
+        this.paused = paused;
+    }
 
-
+    /**
+     * Перерисовка карты
+     * */
     public void draw() {
-        managerImageView.relocate(map.getManagerColumn() * padding, map.getManagerRow() * padding);
-        ArrayList<Customer> customers = map.getCustomers();
+        ArrayList<ObjectOnMap> objects = map.getObjects();
         int count = 0;
-        for (Customer customer : customers) {
-            int row = customer.getRow() * padding;
-            int column = customer.getColumn() * padding;
-            customerImageView[count].setVisible(true);
-            customerImageView[count++].relocate(column + ThreadLocalRandom.current().nextInt(-4, 5),
-                    row + ThreadLocalRandom.current().nextInt(-4, 5));
+        for (ObjectOnMap object : objects) {
+            if (object instanceof Customer) {
+                int row = object.getRow() * padding;
+                int column = object.getColumn() * padding;
+                customerImageView[count].setVisible(true);
+                customerImageView[count++].relocate(column + ThreadLocalRandom.current().nextInt(-4, 5),
+                        row + ThreadLocalRandom.current().nextInt(-4, 5));
+            }
+            else
+                managerImageView.relocate(object.getColumn() * padding, object.getRow() * padding);
         }
         for (int j = count; j < Map.MAX_CUSTOMERS; j++) {
             customerImageView[j].setVisible(false);

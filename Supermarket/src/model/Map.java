@@ -58,6 +58,9 @@ public class Map {
      * */
     private ArrayList<Customer> customers;
 
+
+    private ArrayList<ObjectOnMap> objects;
+
     /**
      * Максимальное количество посетителей
      * */
@@ -77,8 +80,10 @@ public class Map {
              * Загрузка карты
              * */
             if (mapLoad(fileName)) {
+                objects = new ArrayList<>();
+                objects.add(Manager.getInstance());
+
                 customers = new ArrayList<>();
-                Manager.getInstance().setPutable(new Put());
                 isReady = true;
             }
         }
@@ -184,26 +189,24 @@ public class Map {
         return isReady;
     }
 
+    /**
+     * инициализирует карту, считывая ее из файла filename
+     * */
     public static void initialization(String filename) {
         ourInstance = new Map(filename);
     }
 
-    private class Take implements Takeable {
-        @Override
-        public boolean takeProduct(int row, int column) {
-            if (productsCount[row][column] > 0) {
-                productsCount[row][column]--;
-                return true;
-            }
-            return false;
+
+    public boolean takeProduct(int row, int column) {
+        if (productsCount[row][column] > 0) {
+            productsCount[row][column]--;
+            return true;
         }
+        return false;
     }
 
-    class Put implements Putable {
-        @Override
-        public void putProduct(int row, int column) {
-            productsCount[row][column] = MAX_PRODUCTS_IN_CELL;
-        }
+    public void putProduct(int row, int column) {
+        productsCount[row][column] = MAX_PRODUCTS_IN_CELL;
     }
 
     private boolean customerHasEntered() {
@@ -215,12 +218,29 @@ public class Map {
      * */
     public void timeStep() {
         if (isReady) {
-            if (customers.size() < MAX_CUSTOMERS)
+            if (objects.size() - 1 < MAX_CUSTOMERS)
                 if (customerHasEntered())
-                    customers.add(new Customer(new Take()));
+                    objects.add(new Customer());
+
             /**
              * Цикл обработки посетителей
              * */
+            for (ObjectOnMap object : objects)
+                object.liveStep();
+
+            for (int i = 0; i < objects.size(); i++) {
+                if (objects.get(i).left()) {
+                    objects.remove(i);
+                    i--;
+                }
+            }
+
+
+            /*
+            if (customers.size() < MAX_CUSTOMERS)
+                if (customerHasEntered())
+                    customers.add(new Customer());
+
             for (Customer customer : customers)
                 customer.liveStep();
             for (int i = 0; i < customers.size(); i++) {
@@ -230,6 +250,7 @@ public class Map {
                 }
             }
             Manager.getInstance().liveStep();
+            */
         }
     }
 
@@ -299,7 +320,13 @@ public class Map {
     }
 
     public HashMap<Byte, Pair<Integer, String>> getProductType() {
-        return productType;
+        HashMap<Byte, Pair<Integer, String>> copy = new HashMap<>();
+        Pair<Integer, String> info;
+        for (Byte ID : productType.keySet()) {
+            info = new Pair<>(getProductByID(ID).getCost(), getProductByID(ID).getName());
+            copy.put(ID, info);
+        }
+        return copy;
     }
 
     public String getCustomerInfo(int row, int column) {
@@ -315,8 +342,8 @@ public class Map {
         return Manager.getInstance().getInfo();
     }
 
-    public ArrayList<Customer> getCustomers() {
-        return new ArrayList<>(customers);
+    public ArrayList<ObjectOnMap> getObjects() {
+        return new ArrayList<>(objects);
     }
 
     public int getManagerRow() {

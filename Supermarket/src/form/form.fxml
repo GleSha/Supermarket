@@ -13,7 +13,7 @@
       <Button fx:id="mapChooseButton" cache="true" cacheHint="SPEED" layoutX="14.0" layoutY="538.0" mnemonicParsing="false" onAction="#mapChooseButtonClick" prefHeight="26.0" prefWidth="131.0" text="Выбрать карту" />
       <Label cache="true" cacheHint="SPEED" layoutX="539.0" layoutY="77.0" text="Выручка по товарам:" />
       <Button fx:id="loadMapButton" cache="true" cacheHint="SPEED" layoutX="14.0" layoutY="503.0" mnemonicParsing="false" onAction="#loadMapButtonClick" text="Загрузить карту" />
-      <Label fx:id="currentMapNameLabel" cache="true" cacheHint="SPEED" layoutX="154.0" layoutY="543.0" text="Стандартная карта" />
+      <Label fx:id="currentMapNameLabel" cache="true" cacheHint="SPEED" layoutX="154.0" layoutY="543.0" text="Стандартная карта" wrapText="true" />
       <Label fx:id="productProceedsLabel" cache="true" cacheHint="SPEED" layoutX="539.0" layoutY="128.0" text="0" />
       <Label fx:id="uselessProductProceedsLabel" cache="true" cacheHint="SPEED" layoutX="625.0" layoutY="128.0" text="0" />
       <Label fx:id="commonProceedsLabel" cache="true" cacheHint="SPEED" layoutX="736.0" layoutY="128.0" text="0" />
