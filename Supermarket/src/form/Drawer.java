@@ -207,13 +207,6 @@ public class Drawer {
             managerImageView.setCache(true);
             managerImageView.setCacheHint(CacheHint.SPEED);
             managerImageView.relocate(Storage.getColumn() * padding, Storage.getRow() * padding);
-            managerImageView.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-                @Override
-                public void handle(MouseEvent event) {
-                    if (paused)
-                        textArea.setText(map.getManagerInfo());
-                }
-            });
             pane.getChildren().add(managerImageView);
 
             /**
@@ -228,9 +221,9 @@ public class Drawer {
                         column /= padding;
                         int row = (int) event.getY();
                         row /= padding;
-                        String text = map.getCustomerInfo(row, column);
+                        String text = map.getObjectInfo(row, column);
                         if (text.length() != 0)
-                            textArea.setText(map.getCustomerInfo(row, column));
+                            textArea.setText(text);
                     }
                 }
             });

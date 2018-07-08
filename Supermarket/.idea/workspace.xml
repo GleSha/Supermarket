@@ -63,12 +63,13 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Map.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Map.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/model/Map.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="30">
-              <caret line="2" column="24" selection-start-line="2" selection-start-column="24" selection-end-line="2" selection-end-column="24" />
+            <state relative-caret-position="253">
+              <caret line="62" column="9" lean-forward="true" selection-start-line="62" selection-start-column="9" selection-end-line="62" selection-end-column="9" />
               <folding>
+                <element signature="imports" expanded="true" />
                 <element signature="e#6227#6228#0" expanded="true" />
                 <element signature="e#6300#6301#0" expanded="true" />
                 <element signature="e#8618#8619#0" expanded="true" />
@@ -81,8 +82,6 @@
                 <element signature="e#9089#9090#0" expanded="true" />
                 <element signature="e#9131#9132#0" expanded="true" />
                 <element signature="e#9181#9182#0" expanded="true" />
-                <element signature="e#10353#10354#0" expanded="true" />
-                <element signature="e#10407#10408#0" expanded="true" />
                 <element signature="e#10456#10457#0" expanded="true" />
                 <element signature="e#10505#10506#0" expanded="true" />
                 <element signature="e#10731#10732#0" expanded="true" />
@@ -95,8 +94,8 @@
       <file leaf-file-name="Customer.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/model/Customer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3645">
-              <caret line="243" column="5" lean-forward="true" selection-start-line="243" selection-start-column="5" selection-end-line="243" selection-end-column="5" />
+            <state relative-caret-position="221">
+              <caret line="396" column="13" selection-start-line="396" selection-start-column="13" selection-end-line="396" selection-end-column="13" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -107,11 +106,12 @@
       <file leaf-file-name="ObjectOnMap.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/model/ObjectOnMap.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="135">
-              <caret line="9" column="28" lean-forward="true" selection-start-line="9" selection-start-column="28" selection-end-line="9" selection-end-column="28" />
+            <state relative-caret-position="280">
+              <caret line="19" column="41" selection-start-line="19" selection-start-column="41" selection-end-line="19" selection-end-column="41" />
               <folding>
                 <element signature="e#123#124#0" expanded="true" />
                 <element signature="e#160#161#0" expanded="true" />
+                <element signature="e#205#206#0" expanded="true" />
                 <element signature="e#244#245#0" expanded="true" />
                 <element signature="e#303#304#0" expanded="true" />
                 <element signature="e#331#332#0" expanded="true" />
@@ -123,8 +123,8 @@
       <file leaf-file-name="Manager.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/model/Manager.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1110">
-              <caret line="76" column="13" selection-start-line="76" selection-start-column="13" selection-end-line="76" selection-end-column="13" />
+            <state relative-caret-position="175">
+              <caret line="239" column="13" selection-start-line="239" selection-start-column="13" selection-end-line="239" selection-end-column="13" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -132,11 +132,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Product.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Product.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/model/Product.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="270">
-              <caret line="18" column="20" selection-start-line="18" selection-start-column="20" selection-end-line="18" selection-end-column="20" />
+            <state relative-caret-position="150">
+              <caret line="10" column="19" selection-start-line="10" selection-start-column="19" selection-end-line="10" selection-end-column="19" />
               <folding>
                 <element signature="e#313#314#0" expanded="true" />
                 <element signature="e#340#341#0" expanded="true" />
@@ -152,8 +152,8 @@
       <file leaf-file-name="Drawer.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/form/Drawer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4005">
-              <caret line="267" column="43" selection-start-line="267" selection-start-column="43" selection-end-line="267" selection-end-column="43" />
+            <state relative-caret-position="390">
+              <caret line="215" column="65" lean-forward="true" selection-start-line="215" selection-start-column="65" selection-end-line="215" selection-end-column="65" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#8715#8716#0" expanded="true" />
@@ -229,12 +229,12 @@
         <option value="$PROJECT_DIR$/sources/map1.map" />
         <option value="$PROJECT_DIR$/src/form/Controller.java" />
         <option value="$PROJECT_DIR$/src/form/Main.java" />
-        <option value="$PROJECT_DIR$/src/model/Manager.java" />
+        <option value="$PROJECT_DIR$/src/model/Product.java" />
         <option value="$PROJECT_DIR$/src/model/Customer.java" />
+        <option value="$PROJECT_DIR$/src/model/Manager.java" />
         <option value="$PROJECT_DIR$/src/model/ObjectOnMap.java" />
         <option value="$PROJECT_DIR$/src/form/Drawer.java" />
         <option value="$PROJECT_DIR$/src/model/Map.java" />
-        <option value="$PROJECT_DIR$/src/model/Product.java" />
       </list>
     </option>
   </component>
@@ -470,7 +470,7 @@
       <window_info id="Capture Tool" order="5" />
       <window_info id="Designer" order="0" />
       <window_info content_ui="combo" id="Project" order="1" sideWeight="0.68455285" visible="true" weight="0.2977273" />
-      <window_info x="-1" y="28" width="1368" height="741" id="Structure" order="2" sideWeight="0.31544715" side_tool="true" type="FLOATING" weight="0.2977273" />
+      <window_info x="0" y="41" width="1366" height="714" id="Structure" order="2" sideWeight="0.31544715" side_tool="true" type="FLOATING" weight="0.2977273" />
       <window_info anchor="right" id="Ant Build" order="2" weight="0.25" />
       <window_info id="UI Designer" order="4" />
       <window_info anchor="right" id="Theme Preview" order="4" />
@@ -806,11 +806,84 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/form/Controller.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2265">
+          <caret line="151" column="29" selection-start-line="151" selection-start-column="29" selection-end-line="151" selection-end-column="29" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/model/Product.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="10" column="19" selection-start-line="10" selection-start-column="19" selection-end-line="10" selection-end-column="19" />
+          <folding>
+            <element signature="e#313#314#0" expanded="true" />
+            <element signature="e#340#341#0" expanded="true" />
+            <element signature="e#371#372#0" expanded="true" />
+            <element signature="e#398#399#0" expanded="true" />
+            <element signature="e#425#426#0" expanded="true" />
+            <element signature="e#450#451#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/model/Manager.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="175">
+          <caret line="239" column="13" selection-start-line="239" selection-start-column="13" selection-end-line="239" selection-end-column="13" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/model/ObjectOnMap.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="280">
+          <caret line="19" column="41" selection-start-line="19" selection-start-column="41" selection-end-line="19" selection-end-column="41" />
+          <folding>
+            <element signature="e#123#124#0" expanded="true" />
+            <element signature="e#160#161#0" expanded="true" />
+            <element signature="e#205#206#0" expanded="true" />
+            <element signature="e#244#245#0" expanded="true" />
+            <element signature="e#303#304#0" expanded="true" />
+            <element signature="e#331#332#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/form/Drawer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="390">
+          <caret line="215" column="65" lean-forward="true" selection-start-line="215" selection-start-column="65" selection-end-line="215" selection-end-column="65" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#8715#8716#0" expanded="true" />
+            <element signature="e#8751#8752#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/model/Customer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="396" column="13" selection-start-line="396" selection-start-column="13" selection-end-line="396" selection-end-column="13" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/model/Map.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="30">
-          <caret line="2" column="24" selection-start-line="2" selection-start-column="24" selection-end-line="2" selection-end-column="24" />
+        <state relative-caret-position="253">
+          <caret line="62" column="9" lean-forward="true" selection-start-line="62" selection-start-column="9" selection-end-line="62" selection-end-column="9" />
           <folding>
+            <element signature="imports" expanded="true" />
             <element signature="e#6227#6228#0" expanded="true" />
             <element signature="e#6300#6301#0" expanded="true" />
             <element signature="e#8618#8619#0" expanded="true" />
@@ -823,83 +896,10 @@
             <element signature="e#9089#9090#0" expanded="true" />
             <element signature="e#9131#9132#0" expanded="true" />
             <element signature="e#9181#9182#0" expanded="true" />
-            <element signature="e#10353#10354#0" expanded="true" />
-            <element signature="e#10407#10408#0" expanded="true" />
             <element signature="e#10456#10457#0" expanded="true" />
             <element signature="e#10505#10506#0" expanded="true" />
             <element signature="e#10731#10732#0" expanded="true" />
             <element signature="e#10766#10767#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/model/Customer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3645">
-          <caret line="243" column="5" lean-forward="true" selection-start-line="243" selection-start-column="5" selection-end-line="243" selection-end-column="5" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/model/ObjectOnMap.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="9" column="28" lean-forward="true" selection-start-line="9" selection-start-column="28" selection-end-line="9" selection-end-column="28" />
-          <folding>
-            <element signature="e#123#124#0" expanded="true" />
-            <element signature="e#160#161#0" expanded="true" />
-            <element signature="e#244#245#0" expanded="true" />
-            <element signature="e#303#304#0" expanded="true" />
-            <element signature="e#331#332#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/form/Drawer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4005">
-          <caret line="267" column="43" selection-start-line="267" selection-start-column="43" selection-end-line="267" selection-end-column="43" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#8715#8716#0" expanded="true" />
-            <element signature="e#8751#8752#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/form/Controller.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2265">
-          <caret line="151" column="29" selection-start-line="151" selection-start-column="29" selection-end-line="151" selection-end-column="29" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/model/Manager.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1110">
-          <caret line="76" column="13" selection-start-line="76" selection-start-column="13" selection-end-line="76" selection-end-column="13" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/model/Product.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="18" column="20" selection-start-line="18" selection-start-column="20" selection-end-line="18" selection-end-column="20" />
-          <folding>
-            <element signature="e#313#314#0" expanded="true" />
-            <element signature="e#340#341#0" expanded="true" />
-            <element signature="e#371#372#0" expanded="true" />
-            <element signature="e#398#399#0" expanded="true" />
-            <element signature="e#425#426#0" expanded="true" />
-            <element signature="e#450#451#0" expanded="true" />
           </folding>
         </state>
       </provider>

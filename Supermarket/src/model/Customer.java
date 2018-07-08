@@ -394,6 +394,7 @@ public class Customer extends ObjectOnMap {
     /**
      * Возвращает строку с текущей информацией о покупателе
      * */
+    @Override
     public String getInfo() {
         int check = 0;
         StringBuilder info = new StringBuilder("Необходимые деньги: " + necessaryMoney);

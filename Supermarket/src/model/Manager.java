@@ -237,6 +237,7 @@ public class Manager extends ObjectOnMap {
         Collections.reverse(path);
     }
 
+    @Override
     public String getInfo() {
         if (refill != null)
             return  "Несу " + refill.getName() + " к пустому прилавку";

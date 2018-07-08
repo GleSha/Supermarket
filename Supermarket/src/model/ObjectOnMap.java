@@ -16,4 +16,6 @@ public class ObjectOnMap {
     public boolean left() {
         return false;
     }
+
+    public String getInfo() { return ""; }
 }

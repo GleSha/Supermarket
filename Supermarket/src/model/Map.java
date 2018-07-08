@@ -54,11 +54,8 @@ public class Map {
     private HashMap<Byte, Pair<Integer, String>> productType;
 
     /**
-     * Список посетителей
+     * Список объектов на карте
      * */
-    private ArrayList<Customer> customers;
-
-
     private ArrayList<ObjectOnMap> objects;
 
     /**
@@ -82,8 +79,6 @@ public class Map {
             if (mapLoad(fileName)) {
                 objects = new ArrayList<>();
                 objects.add(Manager.getInstance());
-
-                customers = new ArrayList<>();
                 isReady = true;
             }
         }
@@ -312,17 +307,13 @@ public class Map {
         return copy;
     }
 
-    public String getCustomerInfo(int row, int column) {
-        for (Customer customer : customers) {
-            if (customer.getRow() == row && customer.getColumn() == column) {
-                return customer.getInfo();
+    public String getObjectInfo(int row, int column) {
+        for (ObjectOnMap object : objects) {
+            if (object.getRow() == row && object.getColumn() == column) {
+                return object.getInfo();
             }
         }
         return "";
-    }
-
-    public String getManagerInfo() {
-        return Manager.getInstance().getInfo();
     }
 
     public ArrayList<ObjectOnMap> getObjects() {
