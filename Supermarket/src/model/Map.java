@@ -1,9 +1,6 @@
 package model;
 
-
-import javafx.scene.control.Alert;
 import javafx.util.Pair;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
